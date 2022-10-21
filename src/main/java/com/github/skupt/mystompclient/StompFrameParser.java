@@ -9,37 +9,9 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 public class StompFrameParser {
-    private static String headerRegex = "(?<key>[^\\n:]*):(?<value>[^\\n]*)\\n";
-    private static Pattern headerPattern = Pattern.compile(headerRegex, Pattern.UNICODE_CHARACTER_CLASS);
-
-    public static void main(String[] args) {
-        String frame = "CONNECTED\r\n" +
-                "session1: <session-id>\n" +
-                "session2: <session-id2>\n" +
-                "\n"
-                + "body1\n"
-                + "body2\n"
-                + "body3"
-                + StompCommand.STOMP_END_MSG_CHAR;
-        CommandParts cp = parseCommand(frame);
-//        System.out.println(cp.command);
-//        System.out.println();
-//        System.out.println(cp.headers);
-//        System.out.println();
-//        System.out.println(cp.body);
-
-        String headerPart = cp.getHeaders();
-        System.out.println(headerPart);
-        System.out.println();
-//        Map<String, String> headers = parseHeaders(headerPart);
-//        headers.entrySet().forEach(System.out::println);
-
-
-        StompCommand stompCommand = parseStompCommand(frame);
-        System.out.println(stompCommand);
-
-
-    }
+//    private static String headerRegex = "(?<key>[^\\n:]*):(?<value>[^\\n]*)\\n";
+//    private static Pattern headerPattern = Pattern.compile(headerRegex, Pattern.UNICODE_CHARACTER_CLASS);
+//
 
     public static StompCommand parseStompCommand(String frame) {
         CommandParts commandParts = parseCommand(frame);
@@ -60,6 +32,7 @@ public class StompFrameParser {
         commandParts.setCommand(command);
         commandParts.setHeaders(headers);
         commandParts.setBody(body.length() == 0 ? null : body);
+
         return commandParts;
     }
 
@@ -73,7 +46,6 @@ public class StompFrameParser {
         }
         return frame;
     }
-
 
     @Data
     private static class CommandParts {
@@ -109,5 +81,21 @@ public class StompFrameParser {
 //        return headerMap;
 //    }
 
+//    public static void main(String[] args) {
+//        String frame = "CONNECTED\r\n" +
+//                "session1: <session-id>\n" +
+//                "session2: <session-id2>\n" +
+//                "\n"
+//                + "body1\n"
+//                + "body2\n"
+//                + "body3"
+//                + StompCommand.STOMP_END_MSG_CHAR;
+//        CommandParts cp = parseCommand(frame);
+//        String headerPart = cp.getHeaders();
+//        System.out.println(headerPart);
+//        System.out.println();
+//        StompCommand stompCommand = parseStompCommand(frame);
+//        System.out.println(stompCommand);
+//    }
 
 }

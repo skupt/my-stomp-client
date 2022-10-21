@@ -1,6 +1,8 @@
 package com.github.skupt.mystompclient;
 
 import com.github.skupt.mystompclient.commands.StompCommand;
+import com.github.skupt.mystompclient.service.ReceiveQueService;
+import com.github.skupt.mystompclient.service.SentQueueService;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -16,10 +18,11 @@ import java.util.logging.Logger;
 @NoArgsConstructor
 @Data
 public class MyStompClient implements FrameCallback {
+    public static Level loggerLevel = Level.INFO;
     private static Logger logger = Logger.getLogger(FrameCallback.class.getName());
 
     static {
-        logger.setLevel(Level.INFO);
+        logger.setLevel(loggerLevel);
     }
 
     private String host;
@@ -28,8 +31,8 @@ public class MyStompClient implements FrameCallback {
     private ServerListener serverListener;
     private BufferedReader bufferedReader;
     private PrintStream printStream;
-
     private SentQueueService sentQueueService;
+    private ReceiveQueService receiveQueService;
 
     public MyStompClient(String host, int port) {
         this.host = host;
@@ -42,18 +45,23 @@ public class MyStompClient implements FrameCallback {
         bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
         serverListener = new ServerListener(bufferedReader, getFrameCallback());
         serverListener.start();
-        logger.info("Connected to: " + host + ":" + port);
+//        logger.info("Connected to: " + host + ":" + port);
     }
 
-    public void sendCommand(StompCommand command) {
-        String cmdStr = command.toString();
-        printStream.print(cmdStr);
-        logger.info("Command sent: \n" + cmdStr);
+    public void queOutCommand(StompCommand command) {
+        sentQueueService.addLastOutCommand(command);
     }
+
+//    public void sendCommand(StompCommand command) {
+//        String cmdStr = command.toString();
+//        printStream.print(cmdStr);
+//        logger.info("Command sent: \n" + cmdStr);
+//    }
 
     @Override
     public void onFrame(String frame) {
-        System.out.println(frame);
+        StompCommand command = StompFrameParser.parseStompCommand(frame);
+        receiveQueService.addLastCommand(command);
     }
 
     public FrameCallback getFrameCallback() {
