@@ -1,4 +1,4 @@
-package com.github.skupt.mystompclient;
+package com.github.skupt.mystompclient.controller.producer;
 
 import com.github.skupt.mystompclient.commands.Command;
 import com.github.skupt.mystompclient.commands.StompCommand;
@@ -6,9 +6,8 @@ import lombok.Data;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 
-public class StompFrameParser {
+public class FrameParser {
 //    private static String headerRegex = "(?<key>[^\\n:]*):(?<value>[^\\n]*)\\n";
 //    private static Pattern headerPattern = Pattern.compile(headerRegex, Pattern.UNICODE_CHARACTER_CLASS);
 //

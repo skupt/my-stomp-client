@@ -1,4 +1,4 @@
-package com.github.skupt.mystompclient;
+package com.github.skupt.mystompclient.controller.producer;
 
 import com.github.skupt.mystompclient.commands.StompCommand;
 import com.github.skupt.mystompclient.service.ReceiveQueService;
@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 
 @NoArgsConstructor
 @Data
-public class MyStompClient implements FrameCallback {
+public class CommandProducer implements FrameCallback, OutCommandCallback {
     public static Level loggerLevel = Level.INFO;
     private static Logger logger = Logger.getLogger(FrameCallback.class.getName());
 
@@ -34,7 +34,7 @@ public class MyStompClient implements FrameCallback {
     private SentQueueService sentQueueService;
     private ReceiveQueService receiveQueService;
 
-    public MyStompClient(String host, int port) {
+    public CommandProducer(String host, int port) {
         this.host = host;
         this.port = port;
     }
@@ -43,38 +43,32 @@ public class MyStompClient implements FrameCallback {
         socket = new Socket(host, port);
         printStream = new PrintStream(socket.getOutputStream());
         bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
-        serverListener = new ServerListener(bufferedReader, getFrameCallback());
+        serverListener = new ServerListener(bufferedReader, frameCallback());
         serverListener.start();
-//        logger.info("Connected to: " + host + ":" + port);
     }
-
-    public void queOutCommand(StompCommand command) {
-        sentQueueService.addLastOutCommand(command);
-    }
-
-//    public void sendCommand(StompCommand command) {
-//        String cmdStr = command.toString();
-//        printStream.print(cmdStr);
-//        logger.info("Command sent: \n" + cmdStr);
-//    }
 
     @Override
     public void onFrame(String frame) {
-        StompCommand command = StompFrameParser.parseStompCommand(frame);
+        StompCommand command = FrameParser.parseStompCommand(frame);
         receiveQueService.addLastCommand(command);
     }
 
-    public FrameCallback getFrameCallback() {
+    @Override
+    public void onOutCommand(StompCommand command) {
+        sentQueueService.addLastOutCommand(command);
+
+    }
+
+    public FrameCallback frameCallback() {
         return this;
     }
 
     public void disconnectHost() throws IOException {
-        logger.info("Stopping server listening");
+        logger.info("Command producer stopping server listening");
         serverListener.stopListening();
         bufferedReader.close();
         socket.close();
         printStream.close();
         logger.info("Disconnected from Server");
-
     }
 }

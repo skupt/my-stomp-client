@@ -1,4 +1,4 @@
-package com.github.skupt.mystompclient;
+package com.github.skupt.mystompclient.controller.producer;
 
 import lombok.Data;
 
