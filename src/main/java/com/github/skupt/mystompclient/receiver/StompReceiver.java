@@ -1,4 +1,4 @@
-package com.github.skupt.mystompclient;
+package com.github.skupt.mystompclient.receiver;
 
 import com.github.skupt.mystompclient.commands.StompCommand;
 

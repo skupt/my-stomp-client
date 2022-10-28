@@ -8,7 +8,6 @@ import java.util.UUID;
 
 @Data
 public class StompCommand {
-    //if doesn't work use Character.MIN_VALUE or '^@'
     public static final String STOMP_END_MSG_CHAR = "" + Character.MIN_VALUE;
 
     private final String uuid = UUID.randomUUID().toString();
@@ -46,6 +45,11 @@ public class StompCommand {
         return headerBlock;
     }
 
+    public static StompCommand cmdConnect() {
+        StompCommand connect = new StompCommand(Command.CONNECT, null, null);
+        return connect;
+    }
+
     public static StompCommand cmdConnect(String login, String passcode) {
         StompCommand connect = new StompCommand(Command.CONNECT, null, null);
         Map<String, String> headers = new HashMap<>();
@@ -60,16 +64,31 @@ public class StompCommand {
     }
 
     public static StompCommand cmdSend(String destination, String body) {
-        StompCommand send = new StompCommand(Command.SEND, null, body);
+        StompCommand send = new StompCommand();
+        send.setCommand(Command.SEND);
+        send.setHeaders(new HashMap<>());
         send.getHeaders().put("destination", destination);
+        send.setBody(body);
         return send;
     }
 
     public static StompCommand cmdSend(String destination, String body, boolean toReceipt) {
-        StompCommand send = new StompCommand(Command.SEND, null, body);
+        StompCommand send = new StompCommand();
+        send.setCommand(Command.SEND);
+        send.setHeaders(new HashMap<>());
         send.getHeaders().put("destination", destination);
+        send.setBody(body);
         if (toReceipt) send.getHeaders().put("receipt", send.getUuid());
         return send;
+    }
+
+    public static StompCommand cmdSubscribe(String destination, boolean ack) {
+        StompCommand subscribe = new StompCommand();
+        subscribe.setCommand(Command.SUBSCRIBE);
+        subscribe.setHeaders(new HashMap<>());
+        subscribe.getHeaders().put("destination", destination);
+        subscribe.getHeaders().put("ack", ack ? "client" : "auto");
+        return subscribe;
     }
 
 

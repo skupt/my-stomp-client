@@ -1,14 +1,15 @@
 package com.github.skupt.mystompclient.controller.consumer;
 
-import com.github.skupt.mystompclient.StompReceiver;
 import com.github.skupt.mystompclient.commands.Command;
 import com.github.skupt.mystompclient.commands.StompCommand;
 import com.github.skupt.mystompclient.controller.producer.CommandProducer;
+import com.github.skupt.mystompclient.receiver.StompReceiver;
 import com.github.skupt.mystompclient.service.SentQueueService;
 import lombok.Data;
 
 import java.io.PrintStream;
-import java.util.concurrent.TimeUnit;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Logger;
 
 @Data
@@ -21,45 +22,32 @@ public class CommandConsumer implements CommandConsumerCallback {
 
     private SentQueueService sentQueueService;
     private PrintStream printStream;
-    private StompReceiver stompReceiver;
+    private Set<StompReceiver> stompReceivers = new HashSet<>();
 
     public CommandConsumer(SentQueueService sentQueueService, PrintStream printStream) {
         this.sentQueueService = sentQueueService;
         this.printStream = printStream;
     }
 
-    ;
+    public volatile boolean clientConnected = false;
 
     public void onOutCommand(StompCommand command) {
-        // handle CONNECT
-        if (command.getCommand() == Command.CONNECT) {
-            printStream.print(command);
-            String cmdStr = command.toString();
-            logger.info(cmdStr);
-            while (!sentQueueService.clientConnected) {
-                try {
-                    TimeUnit.MILLISECONDS.sleep(50);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
+        if (command == null) {
+            logger.log(logger.getLevel(), "Command is null in CommandConsumer.onOutCommand(null)");
+            return;
         }
-        // handle CONNECTED
-        if (command.getCommand() == Command.CONNECTED) {
-            throw new UnsupportedOperationException();
-        }
-        // handle SEND
-        if (command.getCommand() == Command.SEND) {
-            printStream.print(command);
-            String cmdStr = command.toString();
-            logger.info(cmdStr);
-        }
+        if (command.getCommand() == Command.STOP_MY_STOMP_PROCESSING) return;
+        logger.log(logger.getLevel(), command.toString());
+        printStream.print(command);
     }
 
     public void onInCommand(StompCommand command) {
-        logger.info(command.toString());
-        stompReceiver.onMessage(command);
+        if (command.getCommand() == Command.STOP_MY_STOMP_PROCESSING) return;
+        stompReceivers.forEach(c -> c.onMessage(command));
+    }
 
+    public void addStompReceiver(StompReceiver stompReceiver) {
+        stompReceivers.add(stompReceiver);
     }
 
     public CommandConsumerCallback commandConsumerCallback() {

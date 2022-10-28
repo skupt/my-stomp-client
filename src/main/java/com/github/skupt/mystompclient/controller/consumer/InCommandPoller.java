@@ -4,7 +4,7 @@ import com.github.skupt.mystompclient.commands.StompCommand;
 import com.github.skupt.mystompclient.service.ReceiveQueService;
 
 public class InCommandPoller implements Runnable {
-    boolean stop = false;
+    public volatile boolean stop = false;
     private ReceiveQueService inQueueService;
     private CommandConsumerCallback commandConsumer;
 

@@ -21,8 +21,8 @@ public class ServerListener extends Thread {
     @Override
     public void run() {
         char c;
-        StringBuilder sb = new StringBuilder();
         while (run) {
+            StringBuilder sb = new StringBuilder();
             do {
                 try {
                     c = (char) reader.read();
