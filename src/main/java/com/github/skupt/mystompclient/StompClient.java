@@ -9,16 +9,21 @@ import com.github.skupt.mystompclient.receiver.DefaultStompReceiver;
 import com.github.skupt.mystompclient.receiver.StompReceiver;
 import com.github.skupt.mystompclient.service.ReceiveQueService;
 import com.github.skupt.mystompclient.service.SentQueueService;
+import lombok.Getter;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 public class StompClient {
+    public static Level loggerLevel = Level.INFO;
 
     private String host;
     private int port;
     private ThreadGroup threadGroup;
+    @Getter
     private ReceiveQueService receiveQueService;
+    @Getter
     private SentQueueService sentQueueService;
     private CommandProducer commandProducer;
     private CommandConsumer commandConsumer;
@@ -56,7 +61,7 @@ public class StompClient {
             throw new RuntimeException(e);
         }
         commandConsumer = new CommandConsumer(sentQueueService, commandProducer.getPrintStream());
-        commandConsumer.addStompReceiver(defaultStompReceiver);
+        if (stompReceiver == null) commandConsumer.addStompReceiver(defaultStompReceiver);
         if (stompReceiver != null) commandConsumer.addStompReceiver(stompReceiver);
         inPollerRunnable = new InCommandPoller(receiveQueService, commandConsumer.commandConsumerCallback());
         inCommandPoller = new Thread(threadGroup, inPollerRunnable, "InCommandPoller");
@@ -68,14 +73,6 @@ public class StompClient {
 
     public void sendCommand(StompCommand command) {
         commandProducer.onOutCommand(command);
-    }
-
-    /**
-     * returns last received command from default receiver
-     */
-    public StompCommand receiveCommand() {
-//        return defaultStompReceiver.getLastReceivedCommand();
-        throw new UnsupportedOperationException();
     }
 
     public void close() throws IOException {

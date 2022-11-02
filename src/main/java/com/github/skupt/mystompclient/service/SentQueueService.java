@@ -1,7 +1,10 @@
 package com.github.skupt.mystompclient.service;
 
+import com.github.skupt.mystompclient.StompClient;
 import com.github.skupt.mystompclient.commands.Command;
 import com.github.skupt.mystompclient.commands.StompCommand;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,14 +15,21 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class SentQueueService {
 
     private static long maxQueLength = 25000;
-
+    @Getter
     private Set<String> destinationToAck = new HashSet<>();
     private LinkedBlockingQueue<StompCommand> outQue = new LinkedBlockingQueue<>();
     private Map<String, StompCommand> toReceiptMap = new HashMap<>();
+    @Setter
+    private StompClient stompClient;
+
 
     public boolean empty = true;
 
     public synchronized void addLastOutCommand(StompCommand stompCommand) {
+        // for every command if command has receipt header then its id goes to toReceiptMap
+        if (stompCommand.getHeaders() != null && stompCommand.getHeaders().get("receipt") != null) {
+            toReceiptMap.put(stompCommand.getHeaders().get("receipt"), stompCommand);
+        }
         if (stompCommand.getCommand() == Command.CONNECT) {
             addAndNotify(stompCommand);
             return;
@@ -44,6 +54,11 @@ public class SentQueueService {
         if (stompCommand.getCommand() == Command.DISCONNECT) {
             addAndNotify(stompCommand);
             return;
+        }
+        if (stompCommand.getCommand() == Command.SUBSCRIBE) {
+            if (stompCommand.getHeaders() != null && stompCommand.getHeaders().get("ack") != null) {
+                destinationToAck.add(stompCommand.getHeaders().get("ack"));
+            }
         }
         // add new Command here
 
@@ -77,6 +92,11 @@ public class SentQueueService {
             Thread.currentThread().interrupt();
         }
         return new StompCommand(Command.STOP_MY_STOMP_PROCESSING, null, null);
+    }
+
+    public void receiptArrived(StompCommand stompCommand) {
+        String commandId = stompCommand.getHeaders().get("receipt-id");
+        toReceiptMap.remove(commandId);
     }
 
 

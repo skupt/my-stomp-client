@@ -1,8 +1,8 @@
 package com.github.skupt.mystompclient.controller.consumer;
 
+import com.github.skupt.mystompclient.StompClient;
 import com.github.skupt.mystompclient.commands.Command;
 import com.github.skupt.mystompclient.commands.StompCommand;
-import com.github.skupt.mystompclient.controller.producer.CommandProducer;
 import com.github.skupt.mystompclient.receiver.StompReceiver;
 import com.github.skupt.mystompclient.service.SentQueueService;
 import lombok.Data;
@@ -17,7 +17,7 @@ public class CommandConsumer implements CommandConsumerCallback {
     public static Logger logger = Logger.getLogger(CommandConsumer.class.getName());
 
     static {
-        logger.setLevel(CommandProducer.loggerLevel);
+        logger.setLevel(StompClient.loggerLevel);
     }
 
     private SentQueueService sentQueueService;

@@ -1,7 +1,7 @@
 package com.github.skupt.mystompclient.receiver;
 
+import com.github.skupt.mystompclient.StompClient;
 import com.github.skupt.mystompclient.commands.StompCommand;
-import com.github.skupt.mystompclient.controller.producer.CommandProducer;
 import lombok.Data;
 
 import java.util.logging.Logger;
@@ -11,7 +11,7 @@ public class DefaultStompReceiver implements StompReceiver {
     private static final Logger logger = Logger.getLogger(DefaultStompReceiver.class.getName());
 
     static {
-        logger.setLevel(CommandProducer.loggerLevel);
+        logger.setLevel(StompClient.loggerLevel);
     }
 
 //    private StompCommand lastReceivedCommand;

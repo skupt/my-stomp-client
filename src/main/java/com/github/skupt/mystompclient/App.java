@@ -15,6 +15,8 @@ public class App {
         TimeUnit.SECONDS.sleep(1);
         client.sendCommand(StompCommand.cmdSend("/stompTopic/two", "hello from send 2", true));
         TimeUnit.SECONDS.sleep(1);
+        client.sendCommand(StompCommand.cmdSend("/stompTopic/one", "hello from send 3"));
+        TimeUnit.SECONDS.sleep(1);
         client.sendCommand(StompCommand.cmdDisconnect());
         client.close();
     }

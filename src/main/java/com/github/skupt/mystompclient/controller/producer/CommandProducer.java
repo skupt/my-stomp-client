@@ -1,5 +1,6 @@
 package com.github.skupt.mystompclient.controller.producer;
 
+import com.github.skupt.mystompclient.StompClient;
 import com.github.skupt.mystompclient.commands.StompCommand;
 import com.github.skupt.mystompclient.service.ReceiveQueService;
 import com.github.skupt.mystompclient.service.SentQueueService;
@@ -14,10 +15,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-//@NoArgsConstructor
-//@Data
 public class CommandProducer implements FrameCallback, OutCommandCallback {
-    public static Level loggerLevel = Level.INFO;
+    public static Level loggerLevel = StompClient.loggerLevel;
     private static Logger logger = Logger.getLogger(FrameCallback.class.getName());
 
     static {
@@ -30,7 +29,7 @@ public class CommandProducer implements FrameCallback, OutCommandCallback {
     private ServerListener serverListener;
     private BufferedReader bufferedReader;
     private PrintStream printStream;
-    private SentQueueService sentQueueService; //
+    private SentQueueService sentQueueService;
     private ReceiveQueService receiveQueService;
     private FrameParser frameParser = new FrameParser();
 

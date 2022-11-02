@@ -91,5 +91,21 @@ public class StompCommand {
         return subscribe;
     }
 
+    public static StompCommand cmdUnsubscribe(String destination) {
+        StompCommand unsubscribe = new StompCommand();
+        unsubscribe.setCommand(Command.UNSUBSCRIBE);
+        unsubscribe.setHeaders(new HashMap<>());
+        unsubscribe.getHeaders().put("destination", destination);
+        return unsubscribe;
+    }
+
+    public static StompCommand cmdAck(String messageId) {
+        StompCommand ack = new StompCommand();
+        ack.setCommand(Command.ACK);
+        ack.setHeaders(new HashMap<>());
+        ack.getHeaders().put("ack", messageId);
+        return ack;
+    }
+
 
 }
