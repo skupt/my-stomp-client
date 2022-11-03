@@ -1,5 +1,6 @@
-package com.github.skupt.mystompclient;
+package com.github.skupt.mystompclient.zexamples;
 
+import com.github.skupt.mystompclient.StompClient;
 import com.github.skupt.mystompclient.commands.StompCommand;
 
 import java.io.IOException;

@@ -1,11 +1,12 @@
-package com.github.skupt.mystompclient;
+package com.github.skupt.mystompclient.zexamples;
 
+import com.github.skupt.mystompclient.StompClient;
 import com.github.skupt.mystompclient.commands.StompCommand;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-public class SubscriberWithCustomReciever {
+public class SubscriberWithCustomReceiver {
     public static void main(String[] args) throws IOException, InterruptedException {
         StompClient client = new StompClient("localhost", 61613, m -> System.out.println(m.getBody()));
         client.init();

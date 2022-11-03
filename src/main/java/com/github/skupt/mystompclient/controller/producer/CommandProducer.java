@@ -92,7 +92,4 @@ public class CommandProducer implements FrameCallback, OutCommandCallback {
         return printStream;
     }
 
-    public void setFrameParser(FrameParser frameParser) {
-        this.frameParser = frameParser;
-    }
 }

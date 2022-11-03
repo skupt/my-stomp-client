@@ -15,6 +15,9 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+/**
+ * StompClient class initializes all underlying messaging components and is a context holder for them.
+ */
 public class StompClient {
     public static Level loggerLevel = Level.INFO;
 
@@ -51,7 +54,9 @@ public class StompClient {
     public void init() throws IOException {
         threadGroup = new ThreadGroup("stomp");
         receiveQueService = new ReceiveQueService();
+        receiveQueService.setStompClient(this);
         sentQueueService = new SentQueueService();
+        sentQueueService.setStompClient(this);
         commandProducer = new CommandProducer(host, port);
         commandProducer.setQueues(sentQueueService, receiveQueService);
         commandProducer.connectHost();
@@ -75,10 +80,15 @@ public class StompClient {
         commandProducer.onOutCommand(command);
     }
 
-    public void close() throws IOException {
+    public void close() throws IOException, InterruptedException {
+        TimeUnit.SECONDS.sleep(3);
         inPollerRunnable.stop = true;
         outPollerRunnable.stop = true;
         commandProducer.disconnectHost();
         threadGroup.stop();
+    }
+
+    public boolean isAllTransactionCommandsReceipted(String transactionId) {
+        return sentQueueService.isAllTransactionCommandsReceipted(transactionId);
     }
 }

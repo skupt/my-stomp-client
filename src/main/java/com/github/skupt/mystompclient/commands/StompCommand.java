@@ -82,6 +82,24 @@ public class StompCommand {
         return send;
     }
 
+    public static StompCommand cmdSend(String destination, String body, String transactionId) {
+        StompCommand send = new StompCommand();
+        send.setCommand(Command.SEND);
+        send.setHeaders(new HashMap<>());
+        send.getHeaders().put("destination", destination);
+        send.getHeaders().put("receipt", send.getUuid());
+        send.getHeaders().put("transaction", transactionId);
+        send.setBody(body);
+        return send;
+    }
+
+    /**
+     * @param destination String topic name
+     * @param ack         boolean 'client' acknowledgment if true (When a client has issued a SUBSCRIBE frame with the
+     *                    ack header set to client any messages received from that destination will not be considered to
+     *                    have been consumed (by the server) until the message has been acknowledged via an ACK frame
+     *                    sent from client) or 'auto'
+     */
     public static StompCommand cmdSubscribe(String destination, boolean ack) {
         StompCommand subscribe = new StompCommand();
         subscribe.setCommand(Command.SUBSCRIBE);
@@ -105,6 +123,34 @@ public class StompCommand {
         ack.setHeaders(new HashMap<>());
         ack.getHeaders().put("ack", messageId);
         return ack;
+    }
+
+    /**
+     * BEGIN is a command for start transaction. Each following SEND frame must contain header 'transaction' with
+     * its id. Identifier is set automatically,  you can get it from this command with method .getUuid()
+     */
+    public static StompCommand cmdBegin() {
+        StompCommand begin = new StompCommand();
+        begin.setCommand(Command.BEGIN);
+        begin.setHeaders(new HashMap<>());
+        begin.getHeaders().put("transaction", begin.uuid);
+        return begin;
+    }
+
+    public static StompCommand cmdCommit(String transactionId) {
+        StompCommand commit = new StompCommand();
+        commit.setCommand(Command.COMMIT);
+        commit.setHeaders(new HashMap<>());
+        commit.getHeaders().put("transaction", transactionId);
+        return commit;
+    }
+
+    public static StompCommand cmdAbort(String transactionId) {
+        StompCommand abort = new StompCommand();
+        abort.setCommand(Command.ABORT);
+        abort.setHeaders(new HashMap<>());
+        abort.getHeaders().put("transaction", transactionId);
+        return abort;
     }
 
 

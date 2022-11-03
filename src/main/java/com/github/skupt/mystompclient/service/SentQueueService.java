@@ -19,6 +19,7 @@ public class SentQueueService {
     private Set<String> destinationToAck = new HashSet<>();
     private LinkedBlockingQueue<StompCommand> outQue = new LinkedBlockingQueue<>();
     private Map<String, StompCommand> toReceiptMap = new HashMap<>();
+    private Map<String, Set<StompCommand>> transactionsInProgress = new HashMap<>();
     @Setter
     private StompClient stompClient;
 
@@ -35,8 +36,17 @@ public class SentQueueService {
             return;
         }
         if (stompCommand.getCommand() == Command.SEND) {
-            String destination = stompCommand.getHeaders().get("destination");
+            // handle transaction header
+            String txId = stompCommand.getHeaders().get("transaction");
+            if (txId != null) {
+                Set<StompCommand> transactionCommands = transactionsInProgress.get(txId);
+                if (transactionCommands != null) {
+                    transactionCommands.add(stompCommand);
+                } else throw new RuntimeException("Transaction mentioned was not started . SEND id: "
+                        + stompCommand.getUuid() + " Transaction id: " + txId);
+            }
             // handle destination header
+            String destination = stompCommand.getHeaders().get("destination");
             if (destination != null) {
                 outQue.add(stompCommand);
             } else {
@@ -58,7 +68,31 @@ public class SentQueueService {
         if (stompCommand.getCommand() == Command.SUBSCRIBE) {
             if (stompCommand.getHeaders() != null && stompCommand.getHeaders().get("ack") != null) {
                 destinationToAck.add(stompCommand.getHeaders().get("ack"));
+                addAndNotify(stompCommand);
+                return;
             }
+        }
+        if (stompCommand.getCommand() == Command.BEGIN) {
+            transactionsInProgress.put(stompCommand.getUuid(), new HashSet<StompCommand>());
+            addAndNotify(stompCommand);
+            return;
+        }
+        if (stompCommand.getCommand() == Command.COMMIT) {
+            String txId = stompCommand.getHeaders().get("transaction");
+            // empty Set means that all commands under transaction were already 'receipted'
+            if (transactionsInProgress.get(txId).isEmpty()) {
+                addAndNotify(stompCommand);
+                return;
+            } else {
+                throw new RuntimeException("Not all commands in transaction were receipted by server. Transaction id: "
+                        + txId);
+            }
+        }
+        if (stompCommand.getCommand() == Command.ABORT) {
+            String txId = stompCommand.getHeaders().get("transaction");
+            if (txId != null) transactionsInProgress.remove(txId);
+            addAndNotify(stompCommand);
+            return;
         }
         // add new Command here
 
@@ -96,8 +130,21 @@ public class SentQueueService {
 
     public void receiptArrived(StompCommand stompCommand) {
         String commandId = stompCommand.getHeaders().get("receipt-id");
+        // handle receipt header for transaction purposes
+        StompCommand command = toReceiptMap.get(commandId);
+        String txId = command.getHeaders().get("transaction");
+        if (txId != null) {
+            // receipt is got, command is removed from unconfirmed commands in transaction
+            transactionsInProgress.get(txId).remove(command);
+        }
+        // handle receipt header for receipt purposes
         toReceiptMap.remove(commandId);
     }
 
+    public boolean isAllTransactionCommandsReceipted(String transactionId) {
+        Set<StompCommand> transactionCommands = transactionsInProgress.get(transactionId);
+        boolean result = transactionCommands.isEmpty();
+        return result;
+    }
 
 }
